@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dashboard | OpportunityOS</title>
+    <meta
+      name="description"
+      content="OpportunityOS helps students discover career opportunities, track applications and review progress in one place."
+    />
+
+    <!-- The stylesheet uses Inter and JetBrains Mono when they are available
+         and falls back to system fonts otherwise, so the site works offline.
+         Optional: to load the real webfonts, uncomment these three lines.
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    -->
+
+    <link rel="stylesheet" href="CSS/style.css" />
+  </head>
+
+  <body>
+    <!-- First focusable element on every page: lets keyboard users jump
+         straight past the navigation. -->
+    <a class="skip-link" href="#main-content">Skip to content</a>
+
+    <!-- Compact top bar. Only visible below 1024px, where the sidebar is a
+         drawer instead of a permanent column. -->
+    <header class="app-header">
+      <button
+        class="menu-toggle"
+        type="button"
+        data-menu-toggle
+        aria-controls="app-sidebar"
+        aria-expanded="false"
+        aria-label="Open navigation menu"
+      >
+        <svg
+          width="18"
+          height="14"
+          viewBox="0 0 18 14"
+          fill="none"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <path
+            d="M0 1h18M0 7h18M0 13h18"
+            stroke="currentColor"
+            stroke-width="1.5"
+          />
+        </svg>
+      </button>
+
+      <a class="app-header__brand" href="index.html">OpportunityOS</a>
+    </header>
+
+    <div class="app-layout">
+      <!-- Main navigation. A drawer below 1024px, a 240px fixed column above. -->
+      <aside class="sidebar" id="app-sidebar" aria-label="Main navigation">
+        <div class="sidebar__top">
+          <a class="sidebar__brand" href="index.html">OpportunityOS</a>
+
+          <button
+            class="sidebar__close"
+            type="button"
+            data-menu-close
+            aria-label="Close navigation menu"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path
+                d="M2 2l12 12M14 2L2 14"
+                stroke="currentColor"
+                stroke-width="1.5"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <nav class="sidebar__nav">
+          <ul class="nav-list">
+            <li>
+              <a class="nav-link" href="index.html" aria-current="page"
+                >Dashboard</a
+              >
+            </li>
+            <li>
+              <a class="nav-link" href="explore.html">Explore Opportunities</a>
+            </li>
+            <li>
+              <a class="nav-link" href="applications.html">My Applications</a>
+            </li>
+            <li>
+              <a class="nav-link" href="bookmarks.html">Bookmarks</a>
+            </li>
+            <li>
+              <a class="nav-link" href="analytics.html">Analytics</a>
+            </li>
+          </ul>
+        </nav>
+
+        <p class="sidebar__note text-small text-muted">
+          Sample data, stored only in this browser.
+        </p>
+      </aside>
+
+      <main class="page" id="main-content">
+        <!-- The dashboard is filled in by the dashboard module in js/app.js.
+             Everything below is real markup; only the numbers, table rows and
+             deadline rows are written by JavaScript. -->
+        <div class="dashboard" id="dashboard">
+          <!-- 1. Welcome -------------------------------------------------- -->
+          <section class="welcome" aria-labelledby="welcome-title">
+            <h1 class="welcome__title" id="welcome-title">
+              Your career journey, in one place.
+            </h1>
+
+            <p class="welcome__text">
+              Keep track of the opportunities you have saved, the applications
+              you have sent and the deadlines that are coming up next.
+            </p>
+
+            <p class="text-small text-muted">
+              Sample data — saved in this browser only. Nothing here is live.
+            </p>
+
+            <div class="btn-group welcome__actions">
+              <a class="btn btn--primary" href="explore.html"
+                >Explore opportunities</a
+              >
+            </div>
+          </section>
+
+          <!-- 2. Overview cards ------------------------------------------- -->
+          <section aria-labelledby="overview-title">
+            <div class="section-head">
+              <h2 class="section-head__title" id="overview-title">
+                Overview
+              </h2>
+            </div>
+
+            <ul class="stat-grid">
+              <li class="card stat">
+                <p class="stat__label text-label">Total applications</p>
+                <p class="stat__value num" id="stat-applications">0</p>
+                <p class="stat__note text-small text-muted">
+                  Every application you have tracked
+                </p>
+              </li>
+
+              <li class="card stat">
+                <p class="stat__label text-label">Interviews</p>
+                <p class="stat__value num" id="stat-interviews">0</p>
+                <p class="stat__note text-small text-muted">
+                  Applications currently at interview stage
+                </p>
+              </li>
+
+              <li class="card stat">
+                <p class="stat__label text-label">Saved opportunities</p>
+                <p class="stat__value num" id="stat-saved">0</p>
+                <p class="stat__note text-small text-muted">
+                  Opportunities kept for later
+                </p>
+              </li>
+
+              <li class="card stat">
+                <p class="stat__label text-label">Upcoming deadlines</p>
+                <p class="stat__value num" id="stat-deadlines">0</p>
+                <p class="stat__note text-small text-muted">
+                  Closing in the next 30 days
+                </p>
+              </li>
+            </ul>
+          </section>
+
+          <div class="dash-columns">
+            <!-- 3. Recent applications ---------------------------------- -->
+            <section aria-labelledby="recent-applications-title">
+              <div class="section-head">
+                <h2
+                  class="section-head__title"
+                  id="recent-applications-title"
+                >
+                  Recent applications
+                </h2>
+                <a class="section-head__link" href="applications.html"
+                  >View all</a
+                >
+              </div>
+
+              <div class="table-wrap" id="recent-applications-wrap">
+                <table class="table table--compact">
+                  <caption class="table__caption">
+                    Your five most recent applications, newest first.
+                  </caption>
+                  <thead>
+                    <tr>
+                      <th scope="col">Opportunity</th>
+                      <th scope="col">Company</th>
+                      <th scope="col" class="table__num">Applied</th>
+                      <th scope="col">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody id="recent-applications-body"></tbody>
+                </table>
+              </div>
+
+              <div class="empty" id="recent-applications-empty" hidden>
+                <h3 class="empty__title">No applications yet</h3>
+                <p class="empty__text">
+                  When you start applying, your applications will appear here
+                  with their current status.
+                </p>
+                <a class="btn btn--secondary" href="explore.html"
+                  >Find an opportunity</a
+                >
+              </div>
+            </section>
+
+            <!-- 4. Upcoming deadlines ------------------------------------ -->
+            <section aria-labelledby="deadlines-title">
+              <div class="section-head">
+                <h2 class="section-head__title" id="deadlines-title">
+                  Upcoming deadlines
+                </h2>
+                <span class="text-small text-muted">Next 30 days</span>
+              </div>
+
+              <ul class="deadline-list" id="deadline-list"></ul>
+
+              <div class="empty" id="deadlines-empty" hidden>
+                <h3 class="empty__title">Nothing closing soon</h3>
+                <p class="empty__text">
+                  No opportunities close in the next 30 days. New deadlines
+                  will show up here.
+                </p>
+              </div>
+            </section>
+          </div>
+
+          <!-- 5. Quick actions ------------------------------------------- -->
+          <section aria-labelledby="quick-actions-title">
+            <div class="section-head">
+              <h2 class="section-head__title" id="quick-actions-title">
+                Quick actions
+              </h2>
+            </div>
+
+            <div class="btn-group">
+              <a class="btn btn--secondary" href="explore.html"
+                >Explore opportunities</a
+              >
+              <a class="btn btn--secondary" href="applications.html"
+                >View applications</a
+              >
+              <a class="btn btn--secondary" href="bookmarks.html"
+                >View bookmarks</a
+              >
+            </div>
+          </section>
+        </div>
+      </main>
+    </div>
+
+    <!-- Dimmed backdrop for the open drawer; clicking it closes the drawer. -->
+    <div class="overlay" data-overlay></div>
+
+    <script src="js/data.js" defer></script>
+    <script src="js/app.js" defer></script>
+  </body>
+</html>

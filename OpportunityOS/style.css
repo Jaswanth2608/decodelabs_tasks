@@ -1,0 +1,2535 @@
+/* ==========================================================================
+   OpportunityOS — main stylesheet
+   --------------------------------------------------------------------------
+   Milestone 1: design tokens, reset and base typography only.
+   Layout, components and page styles are added in later milestones.
+
+   How this file is organised (read top to bottom):
+
+     1. Design tokens — structure   (spacing, layout, type, borders, layering)
+     2. Design tokens — colour      (THE ONLY PLACE WITH COLOUR VALUES)
+     3. Reset                       (predictable starting point for browsers)
+     4. Page base                   (font settings for the whole page)
+     5. Typography                  (headings, paragraphs, text utilities)
+     6. Focus, selection, motion    (keyboard and reduced-motion behaviour)
+     7. Responsive token overrides  (breakpoints at 768px and 1024px)
+     8. Application shell           (header, sidebar, drawer, page container)
+     9. Responsive shell behaviour  (drawer below 1024px, fixed sidebar above)
+    10. UI components              (buttons, badges, chips, forms, cards,
+                                    tables, empty states, placeholders, modal)
+    11. Dashboard                  (welcome block, stat grid, columns,
+                                    deadline rows)
+    12. Explore                    (filter bar, card grid, modal details,
+                                    bookmark toast)
+
+   Important rules for later milestones:
+     * Never write a colour value (hex, rgb, hsl) outside section 2.
+       Every style must use a var(--color-...) token instead.
+     * This stylesheet is mobile-first: the base rules describe the mobile
+       layout, and the only media queries use min-width (768px, 1024px).
+   ========================================================================== */
+
+
+/* ==========================================================================
+   1. Design tokens — structure
+   --------------------------------------------------------------------------
+   These values never change when the colour palette changes.
+   They come from the approved wireframe design system: an 8px rhythm with a
+   4px micro step, sharp 0px corners, 1px structural borders and no shadows.
+   ========================================================================== */
+
+:root {
+  /* --- Spacing scale (4px sub-grid, 8px rhythm) ------------------------ */
+  --space-1: 4px;   /* micro alignment      */
+  --space-2: 8px;   /* tight gaps           */
+  --space-3: 12px;  /* compact padding      */
+  --space-4: 16px;  /* default spacing unit */
+  --space-5: 24px;  /* card padding         */
+  --space-6: 32px;  /* section spacing      */
+  --space-7: 40px;  /* large separation     */
+  --space-8: 48px;  /* biggest separation   */
+
+  /* --- Layout ---------------------------------------------------------- */
+  --sidebar-width: 240px;  /* fixed side navigation on desktop */
+  --gutter: 16px;          /* space between grid columns       */
+  --page-margin: 16px;     /* outer page margin                */
+  --container-max: 1440px; /* maximum content width            */
+
+  /* --- Font families ---------------------------------------------------
+     Inter and JetBrains Mono are listed first. If they are not installed and
+     no webfont is loaded, the system fallbacks are used, so the site always
+     works without an internet connection.                                */
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Arial, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+
+  /* --- Font sizes (mobile values; scaled up in section 7) -------------- */
+  --fs-display: 24px;
+  --fs-h1: 20px;
+  --fs-h2: 18px;
+  --fs-h3: 15px;
+  --fs-body-lg: 16px;
+  --fs-body: 14px;
+  --fs-small: 12px;
+  --fs-label: 11px;
+
+  /* --- Line heights (aligned to the 4px vertical rhythm) --------------- */
+  --lh-display: 32px;
+  --lh-h1: 28px;
+  --lh-h2: 24px;
+  --lh-h3: 20px;
+  --lh-body-lg: 24px;
+  --lh-body: 20px;
+  --lh-small: 16px;
+  --lh-label: 14px;
+
+  /* --- Letter spacing --------------------------------------------------- */
+  --ls-display: -0.01em;
+  --ls-h1: -0.01em;
+  --ls-label: 0.02em;
+
+  /* --- Font weights ----------------------------------------------------- */
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+
+  /* --- Structure constants ---------------------------------------------- */
+  --radius: 0px;         /* every corner is sharp                */
+  --border: 1px;         /* standard structural border           */
+  --border-strong: 2px;  /* focus ring, modal outline            */
+  --duration: 150ms;     /* standard interaction transition      */
+
+  /* --- Layering --------------------------------------------------------- */
+  --z-header: 80;   /* sticky mobile header              */
+  --z-overlay: 90;  /* backdrop behind the mobile drawer */
+  --z-drawer: 100;  /* the sliding side navigation       */
+  --z-modal: 200;   /* dialogs above everything else     */
+  --z-skip: 300;    /* the "skip to content" link        */
+}
+
+
+/* ==========================================================================
+   2. Design tokens — colour
+   --------------------------------------------------------------------------
+   ALL colour values for the project live in this section, and nowhere else.
+   To change the whole site's look, change these declarations only.
+
+   Final approved brand palette:
+     Mocha Mousse   #a47864  — brand accent: decorative fills, borders,
+                               icons and chart elements
+     Ethereal Blue  #add4e0  — informational surfaces and highlights
+     Moonlit Grey   #f2f0ea  — page canvas
+   Supporting neutrals (approved) plus --color-accent-strong (#7a5644), the
+   darker Mocha shade that is safe for small text and button labels.
+   ========================================================================== */
+
+:root {
+  /* --- Surfaces -------------------------------------------------------- */
+  --color-canvas: #f2f0ea;        /* Moonlit Grey: page background       */
+  --color-surface: #ffffff;       /* cards, panels, inputs, table body   */
+  --color-surface-alt: #ebe7de;   /* table headers, zebra rows, disabled */
+  --color-surface-hover: #f7f4ee; /* hovered rows, links and nav items   */
+  --color-tint: #add4e0;          /* Ethereal Blue: highlight surfaces   */
+
+  /* --- Text and icons --------------------------------------------------- */
+  --color-ink: #2a2321;           /* headings and body text              */
+  --color-ink-muted: #6b5f57;     /* secondary labels, meta, placeholder */
+
+  /* --- Lines and borders ------------------------------------------------ */
+  --color-line: #d5cfc4;          /* default 1px borders and dividers    */
+  --color-line-strong: #8b8175;   /* input borders, emphasis outlines    */
+
+  /* --- Brand accent ----------------------------------------------------- */
+  --color-accent: #a47864;        /* Mocha Mousse: decorative fills and
+                                     large accents (3.4:1 on canvas, so it
+                                     is never used for small text)        */
+  --color-accent-strong: #7a5644; /* accessible Mocha: primary button
+                                     fills and small accent text
+                                     (6.5:1 on canvas)                    */
+
+  /* --- Text colours for filled surfaces ---------------------------------- */
+  --color-on-accent: #ffffff;     /* label on --color-accent-strong      */
+  --color-on-tint: #2a2321;       /* text on Ethereal Blue (8.9:1)       */
+  --color-overlay: rgba(42, 35, 33, 0.4); /* dims the page behind the drawer */
+
+  /* --- Interaction ------------------------------------------------------- */
+  --color-focus: #7a5644;         /* 2px focus-visible outline           */
+}
+
+
+/* ==========================================================================
+   2b. Wireframe palette — documentation only, not active
+   --------------------------------------------------------------------------
+   The approved Stitch wireframes are grayscale. The declarations below
+   reproduce that wireframe stage using the same token names, so the project
+   report can show a before/after comparison.
+
+   To preview the wireframe look: comment out the brand values in section 2
+   and uncomment the corresponding declarations below (or copy this whole
+   :root block over section 2, then undo with Git).
+
+   :root {
+     --color-canvas: #ffffff;
+     --color-surface: #ffffff;
+     --color-surface-alt: #e2e4e8;
+     --color-tint: #f4f5f7;
+     --color-ink: #121212;
+     --color-ink-muted: #5a5d62;
+     --color-line: #e2e4e8;
+     --color-line-strong: #8c9097;
+     --color-accent: #121212;
+     --color-accent-strong: #121212;
+     --color-on-accent: #ffffff;
+     --color-on-tint: #121212;
+     --color-focus: #121212;
+   }
+   ========================================================================== */
+
+
+/* ==========================================================================
+   3. Reset
+   --------------------------------------------------------------------------
+   A short, modern reset so spacing and sizing behave the same in every
+   browser. Nothing here is visual design — only predictability.
+   ========================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+/* Lists are used for navigation and card lists, never as bulleted prose. */
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg,
+video {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Form controls must inherit the page font instead of the browser default. */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+/* Links are styled per component in later milestones (e.g. a .link class). */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+
+/* ==========================================================================
+   4. Page base
+   --------------------------------------------------------------------------
+   Sets the canvas colour, the default text colour and the base font size of
+   the document. Everything else builds on these three decisions.
+   ========================================================================== */
+
+html {
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  background-color: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body-lg);
+  font-weight: var(--fw-regular);
+  line-height: var(--lh-body-lg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* ==========================================================================
+   5. Typography
+   --------------------------------------------------------------------------
+   Headings and paragraphs use the token scale directly. The utility classes
+   at the end of this section are the small set of text styles that pages and
+   components will reuse.
+   ========================================================================== */
+
+h1,
+h2,
+h3,
+h4 {
+  font-weight: var(--fw-semibold);
+  color: var(--color-ink);
+}
+
+h1 {
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+  letter-spacing: var(--ls-display);
+}
+
+h2 {
+  font-size: var(--fs-h1);
+  line-height: var(--lh-h1);
+  letter-spacing: var(--ls-h1);
+}
+
+h3 {
+  font-size: var(--fs-h2);
+  line-height: var(--lh-h2);
+}
+
+h4 {
+  font-size: var(--fs-h3);
+  line-height: var(--lh-h3);
+}
+
+p {
+  font-size: var(--fs-body-lg);
+  line-height: var(--lh-body-lg);
+}
+
+small {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+}
+
+strong {
+  font-weight: var(--fw-semibold);
+}
+
+/* --- Text utilities ---------------------------------------------------- */
+
+/* Large page-level title. */
+.text-display {
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+  letter-spacing: var(--ls-display);
+  font-weight: var(--fw-semibold);
+}
+
+/* Normal body copy, slightly smaller than the default paragraph size. */
+.text-body {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+/* Smaller supporting copy. */
+.text-small {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+}
+
+/* Uppercase technical label: badges, table headers and filter chips. */
+.text-label {
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--ls-label);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+}
+
+/* Secondary, less important text. */
+.text-muted {
+  color: var(--color-ink-muted);
+}
+
+/* Monospace text for metrics and technical keys. */
+.text-mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+}
+
+/* Numbers that must line up in columns (table cells, chart values). */
+.num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+
+/* ==========================================================================
+   6. Focus, selection, motion
+   --------------------------------------------------------------------------
+   Keyboard users must always be able to see where they are. The 2px outline
+   mirrors the wireframe's 2px focus border and only appears for keyboard
+   navigation (not mouse clicks), thanks to :focus-visible.
+   ========================================================================== */
+
+:focus-visible {
+  outline: var(--border-strong) solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+::selection {
+  background-color: var(--color-tint);
+  color: var(--color-on-tint);
+}
+
+/* Respect the operating system's reduced-motion setting. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+
+/* ==========================================================================
+   7. Responsive token overrides
+   --------------------------------------------------------------------------
+   Mobile-first: the base rules above describe the mobile layout. Only two
+   breakpoints exist, as required by the project brief.
+
+     Mobile  : below 768px  — 4 columns, 16px gutter, 16px margins
+     Tablet  : 768px+       — 8 columns, 16px gutter, 24px margins
+     Desktop : 1024px+      — 12 columns, 24px gutter, 40px margins,
+                              plus the persistent 240px sidebar
+   ========================================================================== */
+
+/* --- Tablet: 768px and above ------------------------------------------ */
+@media (min-width: 768px) {
+  :root {
+    --gutter: 16px;
+    --page-margin: 24px;
+
+    --fs-h1: 22px;
+    --lh-h1: 28px;
+  }
+}
+
+/* --- Desktop: 1024px and above ---------------------------------------- */
+@media (min-width: 1024px) {
+  :root {
+    --gutter: 24px;
+    --page-margin: 40px;
+
+    --fs-display: 32px;
+    --lh-display: 40px;
+    --ls-display: -0.02em;
+
+    --fs-h1: 24px;
+    --lh-h1: 32px;
+
+    --fs-h2: 20px;
+    --lh-h2: 28px;
+  }
+}
+
+
+/* ==========================================================================
+   8. Application shell
+   --------------------------------------------------------------------------
+   Every page shares the same shell:
+
+     .skip-link    first focusable element; jumps to the page content
+     .app-header   compact top bar with the menu button (hidden on desktop)
+     .sidebar      the main navigation; off-canvas on small screens
+     .overlay      dims the page while the drawer is open
+     .page         the content container for each page
+
+   Mobile-first: this section describes the phone layout. The desktop grid and
+   the permanently visible sidebar are in section 9.
+   ========================================================================== */
+
+/* --- Skip link -------------------------------------------------------- */
+
+/* Hidden above the viewport until it receives keyboard focus, so keyboard
+   users can jump past the navigation without seeing it otherwise. */
+.skip-link {
+  position: fixed;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: var(--z-skip);
+  padding: var(--space-2) var(--space-4);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  border: var(--border) solid var(--color-line-strong);
+  font-size: var(--fs-body);
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+/* --- Mobile header ---------------------------------------------------- */
+
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-header);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 56px;
+  padding: 0 var(--page-margin);
+  background-color: var(--color-surface);
+  border-bottom: var(--border) solid var(--color-line);
+}
+
+/* The hamburger button. 40x40px keeps it a comfortable touch target. */
+.menu-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  color: var(--color-ink);
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface);
+}
+
+.menu-toggle:hover {
+  border-color: var(--color-line-strong);
+  background-color: var(--color-surface-hover);
+}
+
+.app-header__brand {
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-h1);
+  color: var(--color-ink);
+}
+
+/* --- Sidebar ---------------------------------------------------------- */
+
+/* Off-canvas by default: parked just outside the left edge of the screen.
+   `visibility: hidden` also removes it from the tab order while closed. */
+.sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  z-index: var(--z-drawer);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  width: var(--sidebar-width);
+  padding: var(--space-5) var(--space-4);
+  overflow-y: auto;
+  background-color: var(--color-surface);
+  border-right: var(--border) solid var(--color-line);
+  transform: translateX(-100%);
+  visibility: hidden;
+  /* While closed the panel must never catch a click, even for the brief
+     moment it is still sliding out. */
+  pointer-events: none;
+  /* Only the transform is animated. visibility flips immediately in both
+     directions so the panel is focusable the moment it opens, and its links
+     leave the tab order the moment it closes. */
+  transition: transform var(--duration) ease-out;
+}
+
+/* `drawer-open` is added to <body> by js/app.js. */
+body.drawer-open .sidebar {
+  transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* Stop the page behind the drawer from scrolling while it is open. */
+body.drawer-open {
+  overflow: hidden;
+}
+
+.sidebar__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.sidebar__brand {
+  font-size: var(--fs-h2);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-h1);
+  color: var(--color-ink);
+}
+
+/* The drawer's close button. Hidden on desktop, where the sidebar is fixed. */
+.sidebar__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  color: var(--color-ink-muted);
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface);
+}
+
+.sidebar__close:hover {
+  color: var(--color-ink);
+  border-color: var(--color-line-strong);
+  background-color: var(--color-surface-hover);
+}
+
+.nav-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Nav links are 44px tall for comfortable touch use, and the 2px left border
+   is the active marker (transparent when inactive so text never shifts). */
+.nav-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: var(--space-2) var(--space-3);
+  border-left: var(--border-strong) solid transparent;
+  color: var(--color-ink-muted);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+.nav-link:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-ink);
+}
+
+/* The current page, marked in the HTML with aria-current="page". */
+.nav-link[aria-current="page"] {
+  border-left-color: var(--color-accent);
+  background-color: var(--color-surface-hover);
+  color: var(--color-ink);
+  font-weight: var(--fw-medium);
+}
+
+/* Small note at the bottom of the sidebar, pushed down with margin-top: auto. */
+.sidebar__note {
+  margin-top: auto;
+  padding-top: var(--space-4);
+  border-top: var(--border) solid var(--color-line);
+}
+
+/* --- Overlay ---------------------------------------------------------- */
+
+/* The dim layer behind the drawer. It is only displayed while the drawer is
+   open, so it never blocks clicks on the page when closed. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: none;
+  background-color: var(--color-overlay);
+  border: 0;
+}
+
+body.drawer-open .overlay {
+  display: block;
+}
+
+/* --- Page container --------------------------------------------------- */
+
+.page {
+  padding: var(--space-6) var(--page-margin) var(--space-8);
+}
+
+
+/* ==========================================================================
+   9. Responsive shell behaviour
+   --------------------------------------------------------------------------
+   Below 1024px the sidebar is a drawer opened from the header.
+   At 1024px and above the header and close button disappear, and the sidebar
+   becomes a permanent 240px column beside the page content.
+   ========================================================================== */
+
+@media (min-width: 1024px) {
+  /* No hamburger needed: the navigation is always visible. */
+  .app-header {
+    display: none;
+  }
+
+  /* Two columns: fixed-width navigation, then the flexible content area.
+     minmax(0, 1fr) stops long content from forcing the grid wider. */
+  .app-layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+    min-height: 100vh;
+  }
+
+  /* Back into the normal flow: a sticky column instead of a sliding panel.
+     align-self: start is required for position: sticky inside a grid. */
+  .sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    width: auto;
+    transform: none;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .sidebar__close {
+    display: none;
+  }
+
+  .overlay {
+    display: none;
+  }
+
+  /* If the drawer class is left over from the mobile view, ignore it here. */
+  body.drawer-open {
+    overflow: auto;
+  }
+
+  .page {
+    padding-top: var(--space-7);
+  }
+}
+
+
+/* ==========================================================================
+   10. UI components
+   --------------------------------------------------------------------------
+   Reusable building blocks used by every page. Nothing here is page specific,
+   and nothing here declares a colour: every value comes from the tokens in
+   sections 1 and 2.
+
+   Components in this section:
+     10.1 Buttons
+     10.2 Badges
+     10.3 Filter chips
+     10.4 Form controls
+     10.5 Cards and panels
+     10.6 Tables
+     10.7 Empty states
+     10.8 Placeholder boxes
+     10.9 Modal
+
+   House rules for all of them: sharp 0px corners, 1px structural borders,
+   no box-shadows, generous touch targets, and a visible keyboard focus style
+   (the shared :focus-visible outline from section 6).
+   ========================================================================== */
+
+
+/* --------------------------------------------------------------------------
+   10.1 Buttons
+   --------------------------------------------------------------------------
+   Markup:
+     <button class="btn btn--primary" type="button">Save</button>
+
+   Four variants: primary, secondary, tertiary (ghost), and disabled.
+   A .btn also works on <a> when an action is really a link.
+   -------------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 36px;
+  padding: 0 var(--space-4);
+  border: var(--border) solid transparent;
+  font-family: inherit;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: var(--fw-medium);
+  text-align: center;
+  white-space: nowrap;
+  transition: background-color var(--duration), border-color var(--duration),
+    color var(--duration);
+}
+
+/* Primary: the main action on a screen. Mocha Mousse at its accessible
+   strength, with white text (6.5:1 contrast). */
+.btn--primary {
+  background-color: var(--color-accent-strong);
+  border-color: var(--color-accent-strong);
+  color: var(--color-on-accent);
+}
+
+.btn--primary:hover {
+  background-color: var(--color-ink);
+  border-color: var(--color-ink);
+}
+
+/* Secondary: an alternative action. Outlined, so it never competes with the
+   primary button. */
+.btn--secondary {
+  background-color: var(--color-surface);
+  border-color: var(--color-line-strong);
+  color: var(--color-ink);
+}
+
+.btn--secondary:hover {
+  background-color: var(--color-surface-hover);
+  border-color: var(--color-ink);
+}
+
+/* Tertiary: low emphasis, for the third action in a group or a toolbar. */
+.btn--tertiary {
+  background-color: transparent;
+  border-color: transparent;
+  color: var(--color-ink-muted);
+}
+
+.btn--tertiary:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-ink);
+}
+
+/* Destructive actions (remove, delete) stay monochrome: an ink outline that
+   inverts on hover. No new colour is introduced just for danger. */
+.btn--danger {
+  background-color: var(--color-surface);
+  border-color: var(--color-ink);
+  color: var(--color-ink);
+}
+
+.btn--danger:hover {
+  background-color: var(--color-ink);
+  color: var(--color-surface);
+}
+
+/* Disabled: still readable (4.9:1), but clearly inert and unclickable. */
+.btn:disabled,
+.btn.is-disabled {
+  background-color: var(--color-surface-alt);
+  border-color: var(--color-line);
+  color: var(--color-ink-muted);
+  cursor: not-allowed;
+}
+
+/* Pointer feedback is suppressed on disabled buttons. */
+.btn:disabled:hover,
+.btn.is-disabled:hover {
+  background-color: var(--color-surface-alt);
+  border-color: var(--color-line);
+  color: var(--color-ink-muted);
+}
+
+/* Full-width button, useful in narrow layouts and modal footers on phones. */
+.btn--block {
+  width: 100%;
+}
+
+/* A row of buttons that wraps instead of overflowing on small screens. */
+.btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: center;
+}
+
+
+/* --------------------------------------------------------------------------
+   10.2 Badges
+   --------------------------------------------------------------------------
+   Small uppercase status labels, also used for application stages later.
+
+   Markup:
+     <span class="badge badge--info">Closing soon</span>
+   -------------------------------------------------------------------------- */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 2px var(--space-2);
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface);
+  color: var(--color-ink-muted);
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--ls-label);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* Neutral is the default look; the modifier makes the intent explicit. */
+.badge--neutral {
+  background-color: var(--color-surface);
+  border-color: var(--color-line);
+  color: var(--color-ink-muted);
+}
+
+/* Informational: Ethereal Blue surface with ink text (8.9:1). */
+.badge--info {
+  background-color: var(--color-tint);
+  border-color: var(--color-tint);
+  color: var(--color-on-tint);
+}
+
+/* Brand: Mocha Mousse border with the accessible Mocha text colour. */
+.badge--accent {
+  background-color: var(--color-surface);
+  border-color: var(--color-accent);
+  color: var(--color-accent-strong);
+}
+
+/* Strong: solid ink, for the most important state in a list. */
+.badge--strong {
+  background-color: var(--color-ink);
+  border-color: var(--color-ink);
+  color: var(--color-surface);
+}
+
+
+/* --------------------------------------------------------------------------
+   10.3 Filter chips
+   --------------------------------------------------------------------------
+   Chips are toggle buttons, so the selected state is stored in the HTML with
+   aria-pressed rather than in a class. Screen readers announce the state.
+
+   Markup:
+     <div class="chip-group" role="group" aria-label="Filters">
+       <button class="chip" type="button" aria-pressed="true">Internships</button>
+       <button class="chip" type="button" aria-pressed="false">Scholarships</button>
+     </div>
+   -------------------------------------------------------------------------- */
+
+.chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface);
+  color: var(--color-ink-muted);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  white-space: nowrap;
+  transition: background-color var(--duration), border-color var(--duration),
+    color var(--duration);
+}
+
+.chip:hover {
+  border-color: var(--color-line-strong);
+  color: var(--color-ink);
+}
+
+/* Selected chip: Ethereal Blue fill, Mocha outline, ink text. */
+.chip[aria-pressed="true"] {
+  background-color: var(--color-tint);
+  border-color: var(--color-accent);
+  color: var(--color-on-tint);
+  font-weight: var(--fw-medium);
+}
+
+
+/* --------------------------------------------------------------------------
+   10.4 Form controls
+   --------------------------------------------------------------------------
+   Text input, select, checkbox and radio, plus the label/hint wrapper that
+   keeps them consistent.
+
+   Markup:
+     <div class="field">
+       <label class="field__label" for="search">Search</label>
+       <input class="input" id="search" type="search" placeholder="Role or company" />
+       <p class="field__hint">Searches titles and organisations.</p>
+     </div>
+   -------------------------------------------------------------------------- */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field__label {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: var(--fw-medium);
+  color: var(--color-ink);
+}
+
+.field__hint {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--color-ink-muted);
+}
+
+/* Error text only appears alongside aria-invalid="true" on the control. */
+.field__error {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--color-accent-strong);
+  font-weight: var(--fw-medium);
+}
+
+/* Text input and select share one look: 36px tall, 1px strong border, and an
+   ink border plus the shared focus outline when focused.
+   The vertical padding is intentionally small so that the line height plus
+   padding stays under 36px and min-height decides the final height. */
+.input,
+.select {
+  width: 100%;
+  min-height: 36px;
+  padding: var(--space-1) var(--space-3);
+  border: var(--border) solid var(--color-line-strong);
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  font-family: inherit;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  transition: border-color var(--duration), background-color var(--duration);
+}
+
+.input::placeholder {
+  color: var(--color-ink-muted);
+}
+
+.input:hover,
+.select:hover {
+  border-color: var(--color-ink);
+}
+
+.input:focus,
+.select:focus {
+  border-color: var(--color-ink);
+}
+
+/* The select keeps the native arrow, which is reliable and keyboard friendly. */
+.select {
+  padding-right: var(--space-5);
+  cursor: pointer;
+}
+
+/* Disabled controls are muted and obviously inert. */
+.input:disabled,
+.select:disabled {
+  background-color: var(--color-surface-alt);
+  border-color: var(--color-line);
+  color: var(--color-ink-muted);
+  cursor: not-allowed;
+}
+
+/* Invalid controls get a Mocha border and the error text below them. */
+.input[aria-invalid="true"],
+.select[aria-invalid="true"] {
+  border-color: var(--color-accent-strong);
+}
+
+/* --- Checkbox and radio ----------------------------------------------- */
+
+/* These keep the native control with accent-color, so the tick and dot are
+   drawn by the browser and are always correct, while still taking the brand
+   colour and the 16x16 size from the wireframe. */
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+}
+
+.choice__input {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  margin: 2px 0 0;
+  accent-color: var(--color-accent-strong);
+  cursor: pointer;
+}
+
+.choice__label {
+  color: var(--color-ink);
+}
+
+.choice__input:disabled {
+  cursor: not-allowed;
+}
+
+.choice__input:disabled + .choice__label {
+  color: var(--color-ink-muted);
+}
+
+/* --- Laying out several fields ---------------------------------------- */
+
+/* One column on phones, two on tablets and up. */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+@media (min-width: 768px) {
+  .form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+
+/* --------------------------------------------------------------------------
+   10.5 Cards and panels
+   --------------------------------------------------------------------------
+   Markup:
+     <article class="card">
+       <div class="card__header">
+         <h3 class="card__title">Product Design Intern</h3>
+         <span class="badge badge--accent">Internship</span>
+       </div>
+       <p class="card__meta">Remote — closes 20 Nov</p>
+     </article>
+   -------------------------------------------------------------------------- */
+
+.card {
+  padding: var(--space-5);
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface);
+}
+
+.card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border) solid var(--color-line);
+}
+
+.card__title {
+  font-size: var(--fs-h3);
+  line-height: var(--lh-h3);
+  font-weight: var(--fw-semibold);
+  color: var(--color-ink);
+}
+
+.card__meta {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--color-ink-muted);
+}
+
+.card__body {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--color-ink);
+}
+
+.card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: var(--border) solid var(--color-line);
+}
+
+/* A flat panel for grouping content without the card's padding. */
+.panel {
+  padding: var(--space-4);
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface-alt);
+}
+
+/* Highlighted panel: Ethereal Blue with ink text. */
+.panel--tint {
+  background-color: var(--color-tint);
+  border-color: var(--color-tint);
+  color: var(--color-on-tint);
+}
+
+
+/* --------------------------------------------------------------------------
+   10.6 Tables
+   --------------------------------------------------------------------------
+   The wrapper scrolls horizontally on narrow screens so the page itself never
+   gains a horizontal scrollbar.
+
+   Markup:
+     <div class="table-wrap">
+       <table class="table">
+         <thead><tr><th scope="col">Role</th><th scope="col" class="table__num">Days</th></tr></thead>
+         <tbody><tr><td>Design Intern</td><td class="table__num">12</td></tr></tbody>
+       </table>
+     </div>
+   -------------------------------------------------------------------------- */
+
+.table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  text-align: left;
+}
+
+.table th,
+.table td {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  vertical-align: middle;
+}
+
+/* Header row: tinted fill plus a 1px ink rule, straight from the wireframes. */
+.table thead th {
+  background-color: var(--color-surface-alt);
+  border-bottom: var(--border) solid var(--color-ink);
+  color: var(--color-ink);
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--ls-label);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.table tbody td {
+  border-bottom: var(--border) solid var(--color-line);
+  color: var(--color-ink);
+}
+
+/* No trailing divider under the final row. */
+.table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+/* Zebra striping keeps wide rows easy to follow. */
+.table tbody tr:nth-child(even) {
+  background-color: var(--color-surface-hover);
+}
+
+.table tbody tr:hover {
+  background-color: var(--color-surface-alt);
+}
+
+/* Right-aligned numbers in the monospace, tabular-figure style.
+   Written as .table .table__num so it outranks the base .table th rule. */
+.table .table__num {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tighter padding for dense lists. */
+.table--compact th,
+.table--compact td {
+  padding: var(--space-2) var(--space-3);
+}
+
+
+/* --------------------------------------------------------------------------
+   10.7 Empty states
+   --------------------------------------------------------------------------
+   Shown when a list, search or filter returns nothing.
+
+   Markup:
+     <div class="empty">
+       <h3 class="empty__title">No opportunities yet</h3>
+       <p class="empty__text">Adjust your filters to see more results.</p>
+       <button class="btn btn--secondary" type="button">Clear filters</button>
+     </div>
+   -------------------------------------------------------------------------- */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-8) var(--space-5);
+  border: var(--border) dashed var(--color-line-strong);
+  background-color: var(--color-surface);
+  text-align: center;
+}
+
+/* A page that has data hides its empty state with the hidden attribute, but
+   `display: flex` above would otherwise override the browser's default
+   hidden rule, so the empty block would still be visible. */
+.empty[hidden] {
+  display: none;
+}
+
+.empty__title {
+  font-size: var(--fs-h3);
+  line-height: var(--lh-h3);
+  font-weight: var(--fw-semibold);
+  color: var(--color-ink);
+}
+
+.empty__text {
+  max-width: 46ch;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
+}
+
+
+/* --------------------------------------------------------------------------
+   10.8 Placeholder boxes
+   --------------------------------------------------------------------------
+   Stand-ins for images, charts and maps before real content exists. Both
+   treatments are pure CSS, so they need no image files.
+
+   Markup:
+     <div class="placeholder placeholder--x" role="img" aria-label="Chart placeholder"></div>
+     <div class="placeholder placeholder--hatch"></div>
+   -------------------------------------------------------------------------- */
+
+.placeholder {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface-alt);
+  overflow: hidden;
+}
+
+/* Treatment 1: a single X corner to corner. The two gradients follow the box
+   diagonals, so the X scales with any width or height. */
+.placeholder--x {
+  background-image: linear-gradient(
+      to top right,
+      transparent calc(50% - 0.5px),
+      var(--color-line-strong) calc(50% - 0.5px),
+      var(--color-line-strong) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    ),
+    linear-gradient(
+      to bottom right,
+      transparent calc(50% - 0.5px),
+      var(--color-line-strong) calc(50% - 0.5px),
+      var(--color-line-strong) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    );
+}
+
+/* Treatment 2: diagonal hatch lines, 1px stroke on a 8px repeat. */
+.placeholder--hatch {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0 7px,
+    var(--color-line) 7px 8px
+  );
+}
+
+/* Optional caption sitting on top of the pattern. */
+.placeholder__label {
+  position: relative;
+  padding: 2px var(--space-2);
+  background-color: var(--color-surface);
+  border: var(--border) solid var(--color-line);
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--ls-label);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+
+/* --------------------------------------------------------------------------
+   10.9 Modal
+   --------------------------------------------------------------------------
+   Only the styles live here; the behaviour (open, close, focus trapping and
+   Escape) is added with the page scripts in a later milestone.
+
+   Markup:
+     <div class="modal" id="confirm" hidden>
+       <div class="modal__backdrop"></div>
+       <div class="modal__dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+         <div class="modal__header">
+           <h2 class="modal__title" id="confirm-title">Remove bookmark?</h2>
+           <button class="modal__close" type="button" aria-label="Close dialog">Close</button>
+         </div>
+         <p class="modal__text">This only affects this browser.</p>
+         <div class="modal__footer">
+           <button class="btn btn--secondary" type="button">Cancel</button>
+           <button class="btn btn--primary" type="button">Remove</button>
+         </div>
+       </div>
+     </div>
+
+   The dialog is white with a 2px ink border, on a 40% ink backdrop, with no
+   blur and no shadow, exactly as the design system specifies.
+   -------------------------------------------------------------------------- */
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-4);
+}
+
+/* The hidden attribute must win over display: flex. */
+.modal[hidden] {
+  display: none;
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background-color: var(--color-overlay);
+}
+
+.modal__dialog {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  max-height: calc(100vh - var(--space-8));
+  overflow-y: auto;
+  padding: var(--space-5);
+  border: var(--border-strong) solid var(--color-ink);
+  background-color: var(--color-surface);
+}
+
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: var(--border) solid var(--color-line);
+}
+
+.modal__title {
+  font-size: var(--fs-h2);
+  line-height: var(--lh-h2);
+  font-weight: var(--fw-semibold);
+  color: var(--color-ink);
+}
+
+.modal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 auto;
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface);
+  color: var(--color-ink-muted);
+  font-size: var(--fs-small);
+}
+
+.modal__close:hover {
+  border-color: var(--color-line-strong);
+  color: var(--color-ink);
+  background-color: var(--color-surface-hover);
+}
+
+.modal__text {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--color-ink-muted);
+}
+
+.modal__footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: var(--border) solid var(--color-line);
+}
+
+/* Wider dialog and roomier padding once there is space for it. */
+@media (min-width: 768px) {
+  .modal__dialog {
+    max-width: 560px;
+    padding: var(--space-6);
+  }
+}
+
+/* The footer already wraps, so the buttons stack naturally on a narrow phone
+   without needing a desktop-first media query. */
+
+
+/* ==========================================================================
+   11. Dashboard
+   --------------------------------------------------------------------------
+   Layout for index.html only. The look of the individual pieces (cards,
+   tables, badges, buttons) still comes from section 10; this section adds the
+   page's own grid and a few small text blocks.
+
+   Mobile first: one column everywhere, two stats per row from 768px, four
+   stats per row and a two-column content area from 1024px.
+   ========================================================================== */
+
+/* The whole dashboard: a vertical stack of sections with even spacing. */
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: var(--container-max);
+}
+
+/* --- Welcome block ---------------------------------------------------- */
+
+.welcome {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-bottom: var(--space-5);
+  border-bottom: var(--border) solid var(--color-line);
+}
+
+.welcome__title {
+  max-width: 22ch;
+  color: var(--color-ink);
+}
+
+.welcome__text {
+  max-width: 62ch;
+  font-size: var(--fs-body-lg);
+  line-height: var(--lh-body-lg);
+  color: var(--color-ink-muted);
+}
+
+.welcome__actions {
+  margin-top: var(--space-3);
+}
+
+/* --- Section headings ------------------------------------------------- */
+
+/* One row: title on the left, an optional quiet link or note on the right. */
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-2);
+  border-bottom: var(--border) solid var(--color-line);
+}
+
+.section-head__title {
+  font-size: var(--fs-h2);
+  line-height: var(--lh-h2);
+  font-weight: var(--fw-semibold);
+  color: var(--color-ink);
+}
+
+/* "View all" style link: accessible Mocha, underlined so it is obvious. */
+.section-head__link {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-weight: var(--fw-medium);
+  color: var(--color-accent-strong);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+
+.section-head__link:hover {
+  color: var(--color-ink);
+}
+
+/* --- Stat tiles ------------------------------------------------------- */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+/* .card.stat so this padding wins over the card default without !important. */
+.card.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.stat__label {
+  color: var(--color-ink-muted);
+}
+
+.stat__value {
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+  font-weight: var(--fw-semibold);
+  color: var(--color-ink);
+}
+
+/* Pushes the caption to the bottom so all four tiles line up. */
+.stat__note {
+  margin-top: auto;
+}
+
+/* --- Two-column content area ------------------------------------------ */
+
+.dash-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+/* Grid items default to min-width: auto, which lets a wide table push its
+   column wider than the screen. min-width: 0 lets the table scroll inside its
+   own .table-wrap instead of widening the page. */
+.dash-columns > * {
+  min-width: 0;
+}
+
+/* --- Deadline rows ---------------------------------------------------- */
+
+.deadline-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.deadline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface);
+}
+
+.deadline__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.deadline__title {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: var(--fw-medium);
+  color: var(--color-ink);
+}
+
+.deadline__meta {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--color-ink-muted);
+}
+
+.deadline__date {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--color-ink-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* Urgent rows are marked with a Mocha edge and a stronger countdown, not a
+   second colour. A 3.4:1 accent used as a decorative edge is fine. */
+.deadline--urgent {
+  border-left: var(--border-strong) solid var(--color-accent);
+}
+
+.deadline--urgent .deadline__date {
+  color: var(--color-accent-strong);
+  font-weight: var(--fw-medium);
+}
+
+/* --- Table caption ---------------------------------------------------- */
+
+/* The caption explains the table for screen readers; it is styled as quiet
+   supporting text rather than a headline. */
+.table__caption {
+  padding: var(--space-3) var(--space-4) 0;
+  text-align: left;
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--color-ink-muted);
+}
+
+/* --- Breakpoints ------------------------------------------------------ */
+
+/* Tablet: two stats per row. */
+@media (min-width: 768px) {
+  .stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Desktop: four stats per row, and applications beside deadlines. */
+@media (min-width: 1024px) {
+  .stat-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .dash-columns {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+}
+
+
+/* ==========================================================================
+   12. Explore
+   --------------------------------------------------------------------------
+   Layout for explore.html only. Cards, chips, inputs, buttons, the modal and
+   the empty state all come from section 10; this section adds the filter bar,
+   the card grid, the modal detail list and the bookmark confirmation.
+
+   Mobile first: one column everywhere, two columns from 768px, three from
+   1024px.
+   ========================================================================== */
+
+.explore {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: var(--container-max);
+}
+
+/* --- Filter bar ------------------------------------------------------- */
+
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface);
+}
+
+.filters__title {
+  margin: 0;
+}
+
+.filters__row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+.filters__group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.filters__group .field__label {
+  margin: 0;
+}
+
+/* The clear button sits on the left on phones and on the right once there is
+   room, matching the rest of the forms. */
+.filters__actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* --- Result count ----------------------------------------------------- */
+
+.result-count {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--color-ink-muted);
+}
+
+/* --- Opportunity cards ------------------------------------------------ */
+
+.opportunity-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+/* The grid is hidden with the hidden attribute when nothing matches. */
+.opportunity-grid[hidden] {
+  display: none;
+}
+
+/* Grid items default to min-width: auto; this keeps long words from widening
+   the page on small screens. */
+.opportunity-grid > * {
+  min-width: 0;
+}
+
+.opportunity-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.opportunity-card .card__header {
+  align-items: flex-start;
+  margin-bottom: var(--space-1);
+  padding-bottom: var(--space-2);
+}
+
+.opportunity-card__org {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: var(--fw-medium);
+  color: var(--color-ink);
+}
+
+.opportunity-card__meta {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--color-ink-muted);
+}
+
+.opportunity-card__summary {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--color-ink);
+}
+
+.opportunity-card__deadline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--color-ink-muted);
+}
+
+/* Pushes the two card actions to the bottom, so cards in a row line up. */
+.opportunity-card .card__footer {
+  margin-top: auto;
+  padding-top: var(--space-3);
+}
+
+/* A saved card's button is visibly different, not just announced. */
+.opportunity-card .btn[aria-pressed="true"] {
+  background-color: var(--color-tint);
+  border-color: var(--color-accent);
+  color: var(--color-on-tint);
+}
+
+/* --- Modal detail list ------------------------------------------------ */
+
+.details {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-2) var(--space-4);
+  margin: var(--space-4) 0 0;
+}
+
+.details dt {
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--ls-label);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.details dd {
+  margin: 0 0 var(--space-2);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--color-ink);
+}
+
+/* --- Bookmark confirmation ------------------------------------------- */
+
+/* Always in the DOM so screen readers announce changes; it only becomes
+   visible for a few seconds after a bookmark is added or removed. */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: var(--space-5);
+  z-index: var(--z-modal);
+  max-width: calc(100% - var(--space-8));
+  margin: 0;
+  padding: var(--space-2) var(--space-4);
+  border: var(--border) solid var(--color-accent-strong);
+  background-color: var(--color-ink);
+  color: var(--color-surface);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  text-align: center;
+  transform: translate(-50%, var(--space-2));
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration), transform var(--duration);
+}
+
+.toast.is-visible {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+/* --- Breakpoints ------------------------------------------------------ */
+
+@media (min-width: 768px) {
+  .filters__row {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  }
+
+  .filters__actions {
+    justify-content: flex-end;
+  }
+
+  .opportunity-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .details {
+    grid-template-columns: 150px minmax(0, 1fr);
+  }
+
+  .details dd {
+    margin-bottom: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .opportunity-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+
+/* ==========================================================================
+   13. My Applications
+   --------------------------------------------------------------------------
+   Layout for applications.html only. Cards, badges, buttons, form controls,
+   the modal, the toast and the empty state all come from section 10; this
+   section adds the overview grid, the application rows, the add-application
+   form and the label that is only read out by a screen reader.
+
+   Mobile first: the overview is two tiles across (Total spans the row) and
+   every row stacks. At 768px the overview is three across and each row
+   becomes four columns; at 1024px the overview shows all five tiles.
+   ========================================================================== */
+
+.applications {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: var(--container-max);
+}
+
+/* --- Heading ---------------------------------------------------------- */
+
+/* The live count under the page description. Tabular figures keep it steady
+   as the number of applications changes. */
+.applications__count {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-weight: var(--fw-medium);
+  color: var(--color-ink);
+}
+
+/* --- Overview cards --------------------------------------------------- */
+
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+/* Grid items default to min-width: auto, which lets a long word widen the
+   grid; min-width: 0 keeps the tiles inside the screen. */
+.overview-grid > * {
+  min-width: 0;
+}
+
+/* Total is the headline number, so it takes the whole row on phones, where
+   there are only two columns. */
+.overview-grid .overview-total {
+  grid-column: 1 / -1;
+}
+
+/* --- Application list ------------------------------------------------- */
+
+.application-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+/* The list is hidden with the hidden attribute when nothing matches. */
+.application-list[hidden] {
+  display: none;
+}
+
+/* One row layout for every screen size. On a phone it reads top to bottom:
+   title, then date and status, then the status control. */
+.application-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "main main"
+    "date status"
+    "control control"
+    "actions actions";
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  padding: var(--space-4);
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface);
+}
+
+.application-row__main {
+  grid-area: main;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.application-row__title {
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: var(--fw-semibold);
+  color: var(--color-ink);
+  /* Long unbroken titles wrap instead of widening the page. */
+  overflow-wrap: anywhere;
+}
+
+.application-row__org {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--color-ink-muted);
+}
+
+/* Date column: a quiet label plus a machine-readable <time>. */
+.application-row__date {
+  grid-area: date;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space-1);
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--color-ink-muted);
+  white-space: nowrap;
+}
+
+/* The "Applied" caption stays in the UI font, so it does not read as a
+   value. */
+.application-row__date-label {
+  font-family: var(--font-sans);
+  font-size: var(--fs-label);
+  line-height: var(--lh-label);
+  letter-spacing: var(--ls-label);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  color: var(--color-ink-muted);
+}
+
+.application-row__status {
+  grid-area: status;
+  justify-self: end;
+}
+
+/* Status control: the dropdown fills its column, and the badge above it
+   already shows the current value, so the label is for assistive tech only. */
+.application-row__control {
+  grid-area: control;
+  min-width: 0;
+}
+
+.application-row__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.application-row__select {
+  min-height: 36px;
+  font-size: var(--fs-small);
+}
+
+/* --- Row actions ------------------------------------------------------
+   Archive and delete belong to the row they change, so they sit inside it
+   rather than in a toolbar. Both open the confirmation dialog: nothing is
+   archived or deleted on the first click. */
+.application-row__actions {
+  grid-area: actions;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* Smaller than a page-level button, because two sit side by side in a row. */
+.application-row__action {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  font-size: var(--fs-small);
+}
+
+/* An archived row has no status control, so its actions take the space the
+   dropdown would have used. */
+.application-row--archived {
+  grid-template-areas:
+    "main main"
+    "date status"
+    "actions actions";
+}
+
+/* --- Add application form --------------------------------------------- */
+
+.application-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Inside the dialog the footer belongs to the form, not to .modal__dialog, so
+   it needs its own top spacing. */
+.application-form .modal__footer {
+  margin-top: var(--space-2);
+}
+
+/* Duplicate and unexpected problems appear above the fields, with a Mocha
+   border so they are never missed. */
+.form-error {
+  margin: 0;
+  padding: var(--space-3);
+  border: var(--border) solid var(--color-accent-strong);
+  background-color: var(--color-surface);
+  color: var(--color-accent-strong);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-weight: var(--fw-medium);
+}
+
+.form-error[hidden] {
+  display: none;
+}
+
+/* --- Breakpoints ------------------------------------------------------ */
+
+/* Tablet: three overview tiles per row, and rows become four columns:
+   details, date, badge, status control. */
+@media (min-width: 768px) {
+  .overview-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .overview-grid .overview-total {
+    grid-column: auto;
+  }
+
+  .application-row {
+    grid-template-columns: minmax(0, 1fr) auto auto 168px auto;
+    grid-template-areas: "main date status control actions";
+    gap: var(--space-3);
+  }
+
+  /* Four columns plus the actions, because there is no status dropdown. */
+  .application-row--archived {
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    grid-template-areas: "main date status actions";
+  }
+
+  .application-row__date {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+}
+
+/* Desktop: all five overview tiles across, and a wider status control. */
+@media (min-width: 1024px) {
+  .overview-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+
+  .application-row {
+    grid-template-columns: minmax(0, 1fr) auto auto 190px auto;
+  }
+}
+
+
+/* ==========================================================================
+   14. Bookmarks
+   --------------------------------------------------------------------------
+   Layout for bookmarks.html only. The card grid, cards, badges, chips, form
+   controls, modal, empty states and toast all come from sections 10 and 12;
+   this section adds the page wrapper, the live saved count, the filter row
+   with three controls, and a footer that fits three actions.
+
+   Mobile first: the filter fields stack and the card actions take a full row
+   each. From 768px the three filters sit side by side and the actions share
+   one line.
+   ========================================================================== */
+
+.bookmarks {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: var(--container-max);
+}
+
+/* --- Live saved count ------------------------------------------------ */
+
+/* Tabular figures keep the number steady as bookmarks are removed. */
+.bookmarks__count {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-weight: var(--fw-medium);
+  color: var(--color-ink);
+}
+
+/* --- Filter row -------------------------------------------------------
+   Search, location and work mode in one row from 768px. The type chips stay
+   in their own group below, exactly as they are on Explore. */
+
+.bookmark-filters__row {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+/* --- Card actions -----------------------------------------------------
+   Three actions per card instead of two, and their labels are long, so each
+   one takes a full line at every width. That keeps the buttons the same size
+   whether a card is 218px wide at 1024px or 357px wide at 1440px. */
+
+.bookmark-card .card__footer {
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
+.bookmark-card .card__footer .btn {
+  flex: 1 1 100%;
+}
+
+/* --- Breakpoints ------------------------------------------------------ */
+
+@media (min-width: 768px) {
+  .bookmark-filters__row {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+
+/* ==========================================================================
+   15. Analytics
+   --------------------------------------------------------------------------
+   Layout for analytics.html only. The stat cards, badges, table, deadlines
+   and empty states come from earlier sections; this section adds the six-card
+   overview, the CSS bar chart, the insight cards and the two-column lower
+   area.
+
+   The chart is plain boxes: a track with a filled bar whose width is set by
+   js/app.js as a percentage. No canvas, SVG or library is involved, and the
+   count and percentage are always written next to the bar, so nothing depends
+   on colour or length alone.
+
+   Mobile first: cards two across, chart rows stacked (label, count and share,
+   then the bar), insights one across. From 768px the overview has three
+   columns, the chart gains column headings, and insights pair up. At 1024px
+   the overview shows all six and the lower area becomes two columns.
+   ========================================================================== */
+
+.analytics {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  max-width: var(--container-max);
+}
+
+/* Live summary under the page description. */
+.analytics__summary {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  font-weight: var(--fw-medium);
+  color: var(--color-ink);
+}
+
+/* Honest note under the deadline list. */
+.analytics__note {
+  margin-top: var(--space-3);
+}
+
+/* --- Overview cards --------------------------------------------------- */
+
+.analytics-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.analytics-stat-grid > * {
+  min-width: 0;
+}
+
+/* --- Status breakdown chart ------------------------------------------ */
+
+.chart-panel {
+  padding: var(--space-4);
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface);
+}
+
+.chart__caption {
+  max-width: 62ch;
+  margin: 0 0 var(--space-4);
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  color: var(--color-ink-muted);
+}
+
+/* Column headings are only useful once the row is wide enough. */
+.chart__head {
+  display: none;
+}
+
+.chart {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Phones: name, count and share on one line, the bar underneath. */
+.chart__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    "label value percent"
+    "track track track";
+  align-items: center;
+  gap: var(--space-1) var(--space-3);
+}
+
+.chart__label {
+  grid-area: label;
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  font-weight: var(--fw-medium);
+  color: var(--color-ink);
+}
+
+/* The unfilled part of the bar is a bordered track, so even 0% is visible. */
+.chart__track {
+  grid-area: track;
+  height: 12px;
+  border: var(--border) solid var(--color-line);
+  background-color: var(--color-surface-alt);
+  overflow: hidden;
+}
+
+.chart__bar {
+  display: block;
+  height: 100%;
+  background-color: var(--color-line-strong);
+  transition: width var(--duration) ease-out;
+}
+
+/* One palette token per status. Colour is a decoration only: the text beside
+   each bar carries the same information. */
+.chart__bar--applied {
+  background-color: var(--color-line-strong);
+}
+
+.chart__bar--under-review {
+  background-color: var(--color-accent);
+}
+
+.chart__bar--interview {
+  background-color: var(--color-tint);
+}
+
+.chart__bar--offer {
+  background-color: var(--color-accent-strong);
+}
+
+.chart__bar--rejected {
+  background-color: var(--color-ink);
+}
+
+.chart__value,
+.chart__percent {
+  font-size: var(--fs-small);
+  line-height: var(--lh-small);
+  text-align: right;
+}
+
+.chart__value {
+  grid-area: value;
+  color: var(--color-ink);
+}
+
+.chart__percent {
+  grid-area: percent;
+  min-width: 4ch;
+  color: var(--color-ink-muted);
+}
+
+/* --- Insight cards ----------------------------------------------------- */
+
+.insight-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+.insight-grid > * {
+  min-width: 0;
+}
+
+/* .card.insight so this padding wins over the card default without
+   !important. */
+.card.insight {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+}
+
+.insight__label {
+  color: var(--color-ink-muted);
+}
+
+.insight__value {
+  font-size: var(--fs-display);
+  line-height: var(--lh-display);
+  font-weight: var(--fw-semibold);
+  color: var(--color-ink);
+}
+
+/* Pushes the explanation to the bottom so cards in a row line up. */
+.insight__note {
+  margin-top: auto;
+}
+
+/* --- Lower area -------------------------------------------------------- */
+
+.analytics-columns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+}
+
+/* Grid items default to min-width: auto, which lets the table widen its
+   column instead of scrolling inside .table-wrap. */
+.analytics-columns > * {
+  min-width: 0;
+}
+
+/* --- Breakpoints ------------------------------------------------------ */
+
+@media (min-width: 768px) {
+  .analytics-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* Headings and every row share the same four columns. */
+  .chart__head,
+  .chart__row {
+    grid-template-columns: 130px minmax(0, 1fr) 56px 56px;
+  }
+
+  .chart__head {
+    display: grid;
+    grid-template-areas: "label track value percent";
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-2);
+    border-bottom: var(--border) solid var(--color-line);
+    font-size: var(--fs-label);
+    line-height: var(--lh-label);
+    letter-spacing: var(--ls-label);
+    font-weight: var(--fw-medium);
+    text-transform: uppercase;
+    color: var(--color-ink-muted);
+  }
+
+  .chart__head .chart__num {
+    text-align: right;
+  }
+
+  .chart__row {
+    grid-template-areas: "label track value percent";
+  }
+
+  .insight-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .analytics-stat-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .insight-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .analytics-columns {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  }
+}
